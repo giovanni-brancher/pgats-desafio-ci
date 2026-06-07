@@ -1,0 +1,133 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_IMAGE = "seu-dockerhub-user/banking-api"
+        SONAR_SCANNER_HOME = tool 'SonarScanner'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install') {
+            steps {
+                dir('banking-api') {
+                    sh '''
+                        python3 -m venv .venv
+                        . .venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                dir('banking-api') {
+                    sh '''
+                        . .venv/bin/activate
+                        flake8 app/
+                    '''
+                }
+            }
+        }
+
+        stage('Smoke Tests') {
+            steps {
+                dir('banking-api') {
+                    sh '''
+                        . .venv/bin/activate
+                        pytest -m smoke --cov=app --cov-report=xml --junitxml=smoke-results.xml -v
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit 'banking-api/smoke-results.xml'
+                }
+            }
+        }
+
+        stage('Regression Tests') {
+            when {
+                anyOf {
+                    branch 'main'
+                    triggeredBy 'TimerTrigger'
+                    changeRequest target: 'main'
+                }
+            }
+            steps {
+                dir('banking-api') {
+                    sh '''
+                        . .venv/bin/activate
+                        pytest -m "smoke or regression" --cov=app --cov-report=xml --junitxml=regression-results.xml -v
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit 'banking-api/regression-results.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('banking-api') {
+                    withSonarQubeEnv('SonarQube') {
+                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dir('banking-api') {
+                    sh "docker build -t ${DOCKERHUB_IMAGE}:${BUILD_NUMBER} -t ${DOCKERHUB_IMAGE}:latest ."
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ''' + '${DOCKERHUB_IMAGE}:${BUILD_NUMBER}' + '''
+                        docker push ''' + '${DOCKERHUB_IMAGE}:latest' + '''
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('banking-api') {
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline executada com sucesso!'
+        }
+        failure {
+            echo 'Pipeline falhou. Verifique os logs acima.'
+        }
+    }
+}
