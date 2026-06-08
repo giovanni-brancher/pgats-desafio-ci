@@ -21,4 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY jenkins-entrypoint.sh /jenkins-entrypoint.sh
 RUN chmod +x /jenkins-entrypoint.sh
 
+USER jenkins
+
 ENTRYPOINT ["/jenkins-entrypoint.sh"]
