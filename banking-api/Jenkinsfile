@@ -113,7 +113,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('banking-api') {
-                    sh 'docker-compose up -d'
+                    sh 'docker compose up -d'
                 }
             }
         }
