@@ -66,7 +66,7 @@ Sim. O conceito está presente em todas as principais plataformas de CI/CD, embo
 
 ### Implementação — Self-hosted Agent no Jenkins
 
-O self-hosted agent foi implementado neste projeto e pode ser verificado no repositório https://github.com/giovanni-brancher/pgats-desafio-ci. O Jenkins não utiliza infraestrutura gerenciada — ele executa em um container Docker na máquina local, constituindo um agente self-hosted completo.
+O self-hosted agent foi implementado neste projeto e pode ser verificado neste repositório. O Jenkins não utiliza infraestrutura gerenciada — ele executa em um container Docker na máquina local, constituindo um agente self-hosted completo.
 
 O principal desafio técnico foi conceder ao container Jenkins acesso ao Docker socket do host (`/var/run/docker.sock`) para que o pipeline pudesse executar builds e deploys de containers. Isso foi resolvido em três camadas:
 
