@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_IMAGE = "seu-dockerhub-user/banking-api"
+        DOCKERHUB_IMAGE = "giobrancher/banking-api"
         SONAR_SCANNER_HOME = tool 'SonarScanner'
     }
 
