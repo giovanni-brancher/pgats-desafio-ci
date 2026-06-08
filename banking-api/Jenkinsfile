@@ -56,9 +56,9 @@ pipeline {
         stage('Regression Tests') {
             when {
                 anyOf {
-                    branch 'main'
+                    branch 'master'
                     triggeredBy 'TimerTrigger'
-                    changeRequest target: 'main'
+                    changeRequest target: 'master'
                 }
             }
             steps {

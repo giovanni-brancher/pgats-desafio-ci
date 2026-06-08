@@ -224,7 +224,7 @@ flake8 app/
 | 2 | Install | Sempre |
 | 3 | Lint | Sempre |
 | 4 | Smoke Tests | Sempre |
-| 5 | Regression Tests | Apenas `main`, PR para `main` ou schedule diário |
+| 5 | Regression Tests | Apenas `master`, PR para `master` ou schedule diário |
 | 6 | SonarQube Analysis | Sempre |
 | 7 | Docker Build | Sempre |
 | 8 | Docker Push | Sempre |
