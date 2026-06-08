@@ -236,7 +236,7 @@ Todos os 11 stages executados com sucesso na branch `master`:
 ### SonarQube
 
 #### Análise de qualidade
-<!-- docs/screenshots/sonarqube-analysis.png -->
+<!-- docs/screenshots/sonarqube-running.png -->
 ![SonarQube analysis](docs/screenshots/sonarqube-running.png)
 
 ### Docker Hub
