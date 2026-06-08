@@ -1,5 +1,7 @@
 # PGATS — Desafio 04: Integração Contínua com Jenkins
 
+Repositório: https://github.com/giovanni-brancher/pgats-desafio-ci
+
 ---
 
 ## Índice
@@ -193,10 +195,6 @@ Docs: http://localhost:8000/docs
 <!-- docs/screenshots/jenkins-running.png -->
 ![Jenkins em execução](docs/screenshots/jenkins-running.png)
 
-#### SonarQube em execução
-<!-- docs/screenshots/sonarqube-running.png -->
-![SonarQube em execução](docs/screenshots/sonarqube-running.png)
-
 ### Pipeline
 
 Todos os 11 stages executados com sucesso na branch `master`:
@@ -239,7 +237,7 @@ Todos os 11 stages executados com sucesso na branch `master`:
 
 #### Análise de qualidade
 <!-- docs/screenshots/sonarqube-analysis.png -->
-![SonarQube analysis](docs/screenshots/sonarqube-analysis.png)
+![SonarQube analysis](docs/screenshots/sonarqube-running.png)
 
 ### Docker Hub
 
@@ -258,10 +256,6 @@ Todos os 11 stages executados com sucesso na branch `master`:
 #### Swagger UI — http://localhost:8000/docs
 <!-- docs/screenshots/api-swagger.png -->
 ![API Swagger UI](docs/screenshots/api-swagger.png)
-
-#### Endpoint GET /agencias
-<!-- docs/screenshots/api-get-agencias.png -->
-![GET /agencias](docs/screenshots/api-get-agencias.png)
 
 ### Credenciais Configuradas no Jenkins
 
