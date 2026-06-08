@@ -1,9 +1,5 @@
 # PGATS — Desafio 04: Integração Contínua com Jenkins
 
-Repositório: https://github.com/giovanni-brancher/pgats-desafio-ci
-
----
-
 ## Índice
 
 - [Exercícios](#exercícios)
