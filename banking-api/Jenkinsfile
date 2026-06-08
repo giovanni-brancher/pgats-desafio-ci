@@ -4,12 +4,26 @@ pipeline {
     environment {
         DOCKERHUB_IMAGE = "giobrancher/banking-api"
         SONAR_SCANNER_HOME = tool 'SonarScanner'
+        GITHUB_REPO = "giovanni-brancher/pgats-desafio-ci"
     }
 
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Secret Scan') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        -v "$(pwd):/pwd" \
+                        trufflesecurity/trufflehog:latest \
+                        filesystem /pwd \
+                        --only-verified \
+                        --fail
+                '''
             }
         }
 
@@ -27,12 +41,27 @@ pipeline {
         }
 
         stage('Lint') {
-            steps {
-                dir('banking-api') {
-                    sh '''
-                        . .venv/bin/activate
-                        flake8 app/
-                    '''
+            parallel {
+                stage('Python Lint') {
+                    steps {
+                        dir('banking-api') {
+                            sh '''
+                                . .venv/bin/activate
+                                flake8 app/
+                            '''
+                        }
+                    }
+                }
+                stage('Dockerfile Lint') {
+                    steps {
+                        dir('banking-api') {
+                            sh '''
+                                docker run --rm \
+                                    -i hadolint/hadolint \
+                                    < Dockerfile
+                            '''
+                        }
+                    }
                 }
             }
         }
@@ -107,6 +136,26 @@ pipeline {
                         docker push ''' + '${DOCKERHUB_IMAGE}:${BUILD_NUMBER}' + '''
                         docker push ''' + '${DOCKERHUB_IMAGE}:latest' + '''
                     '''
+                }
+            }
+        }
+
+        stage('GitHub Release') {
+            when {
+                anyOf {
+                    expression { env.BRANCH_NAME == 'master' }
+                    expression { env.GIT_BRANCH == 'origin/master' }
+                }
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
+                    sh """
+                        curl -s -X POST \\
+                            -H "Authorization: token \$GH_TOKEN" \\
+                            -H "Content-Type: application/json" \\
+                            -d '{"tag_name":"v${BUILD_NUMBER}","name":"Release v${BUILD_NUMBER}","body":"Build automático #${BUILD_NUMBER} — imagem Docker: ${DOCKERHUB_IMAGE}:${BUILD_NUMBER}","draft":false,"prerelease":false}' \\
+                            https://api.github.com/repos/${GITHUB_REPO}/releases
+                    """
                 }
             }
         }
