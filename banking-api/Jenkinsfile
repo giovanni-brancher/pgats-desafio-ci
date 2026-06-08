@@ -72,7 +72,7 @@ pipeline {
                 dir('banking-api') {
                     sh '''
                         . .venv/bin/activate
-                        pytest -m smoke --cov=app --cov-report=xml --junitxml=smoke-results.xml -v
+                        pytest -m smoke --cov=app --cov-report=xml --junitxml=smoke-results.xml --alluredir=allure-results -v
                     '''
                 }
             }
@@ -96,7 +96,7 @@ pipeline {
                 dir('banking-api') {
                     sh '''
                         . .venv/bin/activate
-                        pytest -m "smoke or regression" --cov=app --cov-report=xml --junitxml=regression-results.xml -v
+                        pytest -m "smoke or regression" --cov=app --cov-report=xml --junitxml=regression-results.xml --alluredir=allure-results -v
                     '''
                 }
             }
@@ -178,6 +178,15 @@ pipeline {
 
     post {
         always {
+            recordCoverage(
+                tools: [[parser: 'COBERTURA', pattern: 'banking-api/coverage.xml']],
+                qualityGates: [[threshold: 50, metric: 'LINE', baseline: 'PROJECT']]
+            )
+            allure(
+                includeProperties: false,
+                jdk: '',
+                results: [[path: 'banking-api/allure-results']]
+            )
             cleanWs()
         }
         success {
