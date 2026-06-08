@@ -1,9 +1,3 @@
-# PGATS — Desafio 04: Integração Contínua com Jenkins
-
-Repositório: https://github.com/giovanni-brancher/pgats-desafio-ci
-
----
-
 ## Exercício 1 — Implementação de Pipeline em Ferramenta de CI
 
 **Ferramenta escolhida: Jenkins**
