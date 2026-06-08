@@ -58,6 +58,7 @@ pipeline {
                             sh '''
                                 docker run --rm \
                                     -i hadolint/hadolint \
+                                    hadolint --failure-threshold error - \
                                     < Dockerfile
                             '''
                         }
