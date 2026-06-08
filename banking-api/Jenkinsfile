@@ -56,6 +56,7 @@ pipeline {
         stage('Regression Tests') {
             when {
                 anyOf {
+                    expression { env.BRANCH_NAME == 'master' }
                     expression { env.GIT_BRANCH == 'origin/master' }
                     triggeredBy 'TimerTrigger'
                     changeRequest target: 'master'
