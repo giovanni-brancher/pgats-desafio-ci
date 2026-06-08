@@ -1,3 +1,123 @@
+# PGATS — Desafio 04: Integração Contínua com Jenkins
+
+Repositório: https://github.com/giovanni-brancher/pgats-desafio-ci
+
+---
+
+## Como Rodar
+
+### Pré-requisitos
+
+- Docker Desktop rodando
+- Git
+- Porta `9090` (Jenkins), `9000` (SonarQube) e `3308` (MySQL) livres
+
+### 1. Subir a infraestrutura de CI
+
+```bash
+git clone https://github.com/giovanni-brancher/pgats-desafio-ci.git
+cd pgats-desafio-ci
+
+docker compose up -d
+```
+
+Aguarde ~1 minuto. Acesse:
+- Jenkins: http://localhost:9090
+- SonarQube: http://localhost:9000 (admin / admin)
+
+### 2. Configurar o Jenkins
+
+**Plugins necessários** (Manage Jenkins → Plugins → Available):
+- `Allure Jenkins Plugin`
+- `Coverage`
+
+**Ferramenta Allure** (Manage Jenkins → Tools → Allure Commandline):
+- Name: `Allure` → Install automatically
+
+**Credenciais** (Manage Jenkins → Credentials → Global → Add):
+
+| ID | Tipo | Valor |
+|---|---|---|
+| `dockerhub-credentials` | Username + Password | Login do Docker Hub |
+| `sonarqube-token` | Secret text | Token gerado no SonarQube |
+| `banking-api-env` | Secret file | Arquivo `.env` com as variáveis da API |
+| `github-token` | Secret text | GitHub Personal Access Token (scope: `repo`) |
+
+**SonarQube** (Manage Jenkins → System → SonarQube servers):
+- Name: `SonarQube` | URL: `http://sonarqube:9000`
+
+**SonarScanner** (Manage Jenkins → Tools → SonarQube Scanner):
+- Name: `SonarScanner` → Install automatically
+
+### 3. Criar o job
+
+1. New Item → **Pipeline** → Nome: `banking-api`
+2. Pipeline → Definition: `Pipeline script from SCM`
+3. SCM: Git | URL: `https://github.com/giovanni-brancher/pgats-desafio-ci.git`
+4. Branch: `*/master`
+5. Script Path: `banking-api/Jenkinsfile`
+6. Desmarcar "Lightweight checkout"
+7. Save → **Build Now**
+
+### 4. Rodar a API localmente (opcional)
+
+```bash
+cd banking-api
+cp .env.example .env   # ajuste as variáveis
+docker compose up -d
+```
+
+API disponível em: http://localhost:8000  
+Docs: http://localhost:8000/docs
+
+---
+
+## Evidências de Execução
+
+### Infraestrutura
+
+| Componente | URL | Status |
+|---|---|---|
+| Jenkins | http://localhost:9090 | Rodando via Docker |
+| SonarQube | http://localhost:9000 | Rodando via Docker |
+| Docker Hub | https://hub.docker.com/r/giobrancher/banking-api | Imagem publicada |
+
+### Pipeline
+
+Todos os 11 stages executados com sucesso na branch `master`:
+
+| Stage | Resultado |
+|---|---|
+| Secret Scan | TruffleHog — nenhum segredo verificado encontrado |
+| Install | 38 pacotes instalados, incluindo `allure-pytest` |
+| Lint (paralelo) | flake8 sem erros; hadolint sem erros críticos |
+| Smoke Tests | 4 testes passando — relatório JUnit e Allure publicados |
+| Regression Tests | 10 testes passando (smoke + regression) |
+| SonarQube Analysis | Análise enviada ao servidor local (porta 9000) |
+| Docker Build/Push | Imagem `giobrancher/banking-api` publicada no Docker Hub |
+| GitHub Release | Release `v{BUILD_NUMBER}` criada automaticamente via API |
+| Deploy | `docker compose up -d` com `.env` injetado via Secret file |
+
+### Credenciais Configuradas no Jenkins
+
+| ID | Tipo | Uso |
+|---|---|---|
+| `dockerhub-credentials` | Username + Password | Docker Hub push |
+| `sonarqube-token` | Secret text | SonarQube analysis |
+| `banking-api-env` | Secret file | `.env` no deploy |
+| `github-token` | Secret text | GitHub Release API |
+
+### Arquivos Principais
+
+| Arquivo | Descrição |
+|---|---|
+| [`docker-compose.yml`](docker-compose.yml) | Jenkins + SonarQube containerizados |
+| [`Dockerfile.jenkins`](Dockerfile.jenkins) | Jenkins com Python 3, Docker CLI e venv |
+| [`jenkins-entrypoint.sh`](jenkins-entrypoint.sh) | Fix dinâmico do GID do Docker socket |
+| [`banking-api/Jenkinsfile`](banking-api/Jenkinsfile) | Pipeline declarativa com 11 stages |
+
+---
+
 ## Exercício 1 — Implementação de Pipeline em Ferramenta de CI
 
 **Ferramenta escolhida: Jenkins**
